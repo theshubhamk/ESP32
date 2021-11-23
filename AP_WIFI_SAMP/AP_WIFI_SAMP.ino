@@ -61,8 +61,6 @@ void setup()
 }
 void loop() {
 
-  launchWeb();
-  /*
   if ((WiFi.status() == WL_CONNECTED))
   {
 
@@ -73,16 +71,15 @@ void loop() {
       Serial.println(" Successfully");
       delay(100);
     }
-    launchWeb();
+
   }
   else
   {
   }
-  */
+
   if (testWifi() && (digitalRead(15) != 1))
   {
     Serial.println(" connection status positive");
-    launchWeb();
     return;
   }
   else
