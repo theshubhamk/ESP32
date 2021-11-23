@@ -27,6 +27,7 @@ WebServer server(80);
 // MQTT Broker
 const char *mqtt_broker = "broker.emqx.io";
 const char *topic = "esp32/test";
+const char *topic1 = "esp32/test1";
 const char *mqtt_username = "emqx";
 const char *mqtt_password = "public";
 const int mqtt_port = 1883;
@@ -34,6 +35,7 @@ const int mqtt_port = 1883;
 WiFiClient espClient; //mqtt
 PubSubClient client(espClient); //mqtt
 
+int count = 0;
 
 void setup() 
 {
@@ -55,7 +57,7 @@ void setup()
   
   //MQTT //connecting to a mqtt broker
   client.setServer(mqtt_broker, mqtt_port);
-  //client.setCallback(callback);
+  client.setCallback(callback);
   while (!client.connected()) 
   {
       String client_id = "esp32-client-";
@@ -81,10 +83,10 @@ void setup()
 }
 
 
-void callback(char *topic, byte *payload, unsigned int length) 
+void callback(char *topic1, byte *payload, unsigned int length) 
 {
     Serial.print("Message arrived in topic: ");
-    Serial.println(topic);
+    Serial.println(topic1);
     Serial.print("Message:");
     for (int i = 0; i < length; i++) 
     {
@@ -111,13 +113,31 @@ void loop()
   delay(1000);
 
   //const char *serimsg = Serial2.readString().c_str();
-  const char *serimsg = "Yo! Bro who Got You Smilin' like that!";
+  const char *serimsg = "Yo!_Bro_who_Got_You_Smilin'_like_that!";
   client.publish(topic, serimsg);
-  client.subscribe(topic);
+  client.subscribe(topic1);
   delay(1000);
   client.loop();
   
   server.handleClient();
+  /*count++;
+  Serial.println(count);
+  if(count == 150)
+  {
+    ESP.restart();
+  }
+  */
+  if(!client.connected())
+  {
+    Serial.println("resetting");
+    for(int j = 0; j < 10; j++)
+    {
+      Serial.print(".");
+      delay(1000);
+    }
+    ESP.restart();
+  }
+  
 }
 
 void wipeEEPROM()
