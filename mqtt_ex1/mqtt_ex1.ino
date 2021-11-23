@@ -73,7 +73,8 @@ void callback(char *topic, byte *payload, unsigned int length)
 
 void loop() 
 {
-    const char *serimsg = Serial2.readString().c_str();
+    //const char *serimsg = Serial2.readString().c_str();
+    const char *serimsg = "Yo! Bro who Got You Smilin' like that!";
     client.publish(topic, serimsg);
     client.subscribe(topic);
     delay(1000);
