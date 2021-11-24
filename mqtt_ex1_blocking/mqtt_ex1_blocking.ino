@@ -90,11 +90,10 @@ void reconnect() {
 
 void loop() 
 {
-    count++;
+    count++; //temp output to mqtt
     if (!client.connected()) 
     { 
       Serial.println("reconnecting");
-       
       reconnect();
     }
     temp_str = String(count);

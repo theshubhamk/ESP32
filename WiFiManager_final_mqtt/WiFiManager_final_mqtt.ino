@@ -35,7 +35,10 @@ const int mqtt_port = 1883;
 WiFiClient espClient; //mqtt
 PubSubClient client(espClient); //mqtt
 
-int count = 0;
+//test vars
+long count = 0;
+char temp[50];
+String temp_str;
 
 void setup() 
 {
@@ -58,22 +61,7 @@ void setup()
   //MQTT //connecting to a mqtt broker
   client.setServer(mqtt_broker, mqtt_port);
   client.setCallback(callback);
-  while (!client.connected()) 
-  {
-      String client_id = "esp32-client-";
-      client_id += String(WiFi.macAddress());
-      Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
-      if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) 
-      {
-          Serial.println("Public emqx mqtt broker connected");
-      } 
-      else 
-      {
-          Serial.print("failed with state ");
-          Serial.print(client.state());
-          delay(2000);
-      }
-  }
+  
     // publish and subscribe
     //client.publish(topic, "Hi EMQ X I'm ESP32 ^^");
     //const char *serimsg = Serial2.readString().c_str();
@@ -96,10 +84,37 @@ void callback(char *topic1, byte *payload, unsigned int length)
     Serial.println("-----------------------");
 }
 
+void reconnect()
+{
+  //loop everytime until we are connected 
+  while (!client.connected()) 
+  {
+      String client_id = "esp32-client-";
+      client_id += String(WiFi.macAddress());
+      Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
+      if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) 
+      {
+          Serial.println("Public emqx mqtt broker connected");
+          //test msg to mQTT
+          temp_str = String(count);
+          temp_str.toCharArray(temp, temp_str.length() + 1);
+          client.publish(topic, temp);
+          
+          //client.publish(topic, serimsg);
+          client.subscribe(topic1);
+      } 
+      else 
+      {
+          Serial.print("failed with state ");
+          Serial.print(client.state());
+          delay(2000);
+      }
+  }
+}
 
 void loop() 
 {
-  
+  count++;
   if(digitalRead(15) == HIGH) //CHECK FOR HARDWARE RESET SIGNAL I.E PIN 15 PULLED HIGH BY JUMPER WIRE
   {
     Serial.println("Wiping WiFi credentials from memory...");
@@ -112,21 +127,31 @@ void loop()
   digitalWrite(2,LOW);
   delay(1000);
 
-  //const char *serimsg = Serial2.readString().c_str();
-  const char *serimsg = "Yo!_Bro_who_Got_You_Smilin'_like_that!";
-  client.publish(topic, serimsg);
-  client.subscribe(topic1);
+  //MQTT
+  if (!client.connected()) 
+  { 
+      Serial.println("reconnecting");
+      reconnect();
+  }
+  //const char *serimsg = Serial2.readString().c_str(); //UART RX
+  //const char *serimsg = "Yo!_Bro_who_Got_You_Smilin'_like_that!";
+  temp_str = String(count);
+  temp_str.toCharArray(temp, temp_str.length() + 1);
+  client.publish(topic, temp);
+  //client.publish(topic, serimsg);
+  //client.subscribe(topic1);
   delay(1000);
   client.loop();
   
   server.handleClient();
+  
   /*count++;
   Serial.println(count);
   if(count == 150)
   {
     ESP.restart();
   }
-  */
+  
   if(!client.connected())
   {
     Serial.println("resetting");
@@ -137,6 +162,7 @@ void loop()
     }
     ESP.restart();
   }
+  */
   
 }
 
