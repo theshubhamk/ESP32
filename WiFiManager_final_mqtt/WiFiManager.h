@@ -91,7 +91,7 @@ bool loadWIFICredsForm(){
   String s = EEPROM.readString(100);
   String p = EEPROM.readString(200);
   
-  const char* ssid     = "ESP32 WiFi Manager";
+  const char* ssid     = "ALBOT_ECMO(192.168.4.1)";
   const char* password = "12345678";
 
   Serial.println("Setting Access Point...");

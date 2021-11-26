@@ -24,9 +24,12 @@ WebServer server(80);
 #define RXp2 16 //serial
 #define TXp2 17 //serial
 
+//Timer
+unsigned long myTime;
+
 // MQTT Broker
 const char *mqtt_broker = "broker.emqx.io";
-const char *topic = "esp32/test";
+const char *topic = "EcmoParamTopic";
 const char *topic1 = "esp32/test1";
 const char *mqtt_username = "emqx";
 const char *mqtt_password = "public";
@@ -114,6 +117,9 @@ void reconnect()
 
 void loop() 
 {
+
+  //timer prnt
+  myTime = millis();
   count++;
   if(digitalRead(15) == HIGH) //CHECK FOR HARDWARE RESET SIGNAL I.E PIN 15 PULLED HIGH BY JUMPER WIRE
   {
