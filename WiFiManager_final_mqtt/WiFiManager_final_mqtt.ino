@@ -30,6 +30,7 @@ unsigned long myTime;
 // MQTT Broker
 const char *mqtt_broker = "broker.emqx.io";
 const char *topic = "EcmoParamTopic";
+const char *topic2 = "EcmoParamTopic2";
 const char *topic1 = "esp32/test1";
 const char *mqtt_username = "emqx";
 const char *mqtt_password = "public";
@@ -154,7 +155,19 @@ void loop()
       char sbuf[len] = {NULL};
       Serial2.readBytes(sbuf, len);
       Serial.println(sbuf);
-      client.publish(topic,sbuf);
+      if(sbuf[0] == "F")
+      {
+          sbuf = sbuf.substring(1);
+          client.publish(topic2,sbuf);
+      }
+      if(sbuf[0] == "R")
+      {
+        sbuf = sbuf.substring(1);
+        client.publish(topic,sbuf);
+      }
+      //myString.substring(from, to) // USE IT
+      //client.publish(topic,sbuf);
+      //client.publish(topic2,sbuf);
   }   
   
   //const char *serimsg = "Yo!_Bro_who_Got_You_Smilin'_like_that!";
