@@ -8,8 +8,16 @@ void setup() {
 }
 void loop() {
     //delay(1000);
-    Serial.println("Message Received: ");
-    Serial.println(Serial2.readString());
-    
+    //Serial.println(Serial2.readString());
+    if(Serial2.available() > 0)
+    {
+        /*size_t len = Serial2.available();
+        uint8_t sbuf[len];
+        Serial2.readBytes(sbuf, len);
+        Serial.println(sbuf);*/
+        Serial.println("Message Received: ");
+        Serial.println(Serial2.readString());
+     }
+     
     //Serial.println();
 }

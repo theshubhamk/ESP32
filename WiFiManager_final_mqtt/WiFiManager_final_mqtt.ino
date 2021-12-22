@@ -99,9 +99,10 @@ void reconnect()
       {
           Serial.println("Public emqx mqtt broker connected");
           //test msg to mQTT
-          temp_str = String(count);
+         /* temp_str = String(count);
           temp_str.toCharArray(temp, temp_str.length() + 1);
           client.publish(topic, temp);
+         */
           
           //client.publish(topic, serimsg);
           client.subscribe(topic1);
@@ -139,14 +140,32 @@ void loop()
       Serial.println("reconnecting");
       reconnect();
   }
-  //const char *serimsg = Serial2.readString().c_str(); //UART RX
+  /*
+  if(Serial2.available() > 0)
+  {
+    const char *serimsg = Serial2.readString().c_str(); //UART RX
+    Serial.println(serimsg);
+    client.publish(topic,serimsg);
+  }*/
+  
+  if(Serial2.available() > 0)
+  {
+      const int len = 10;
+      char sbuf[len] = {NULL};
+      Serial2.readBytes(sbuf, len);
+      Serial.println(sbuf);
+      client.publish(topic,sbuf);
+  }   
+  
   //const char *serimsg = "Yo!_Bro_who_Got_You_Smilin'_like_that!";
+  /*
   temp_str = String(count);
   temp_str.toCharArray(temp, temp_str.length() + 1);
   client.publish(topic, temp);
-  //client.publish(topic, serimsg);
+  */
+  
   //client.subscribe(topic1);
-  delay(1000);
+  //delay(1000);
   client.loop();
   
   server.handleClient();
