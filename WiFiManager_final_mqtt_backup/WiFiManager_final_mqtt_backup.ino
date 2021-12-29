@@ -17,7 +17,6 @@
 #include <EEPROM.h>
 #include <PubSubClient.h> //mqtt
 #include "driver/uart.h" //uart
-#include <ArduinoJson.h>
 
 WebServer server(80);
 
@@ -41,12 +40,12 @@ uint16_t rx_fifo_len;
 unsigned long myTime;
 
 // MQTT Broker
-const char *mqtt_broker = "venti-dev.albot.io";
+const char *mqtt_broker = "broker.emqx.io";
 const char *topic = "EcmoParamTopic";
 const char *topic2 = "EcmoParamTopic2";
 const char *topic1 = "esp32/test1";
-const char *mqtt_username = "";
-const char *mqtt_password = "";
+const char *mqtt_username = "emqx";
+const char *mqtt_password = "public";
 const int mqtt_port = 1883;
 
 WiFiClient espClient; //mqtt
@@ -180,45 +179,23 @@ static void UART_ISR_ROUTINE(void *pvParameters)
                 int UART2_data_length = 0;
                 ESP_ERROR_CHECK(uart_get_buffered_data_len(UART_NUM_2, (size_t*)&UART2_data_length));
                 UART2_data_length = uart_read_bytes(UART_NUM_2, UART2_data, UART2_data_length, 100);
-
-                /*
+             
                 Serial.print("LEN= ");Serial.println(UART2_data_length);
  
                 Serial.print("DATA= ");
                 for(byte i=0; i<UART2_data_length;i++) Serial.print((char)UART2_data[i]);
                 Serial.println("");
-                */
+                
                 //for(byte i=0; i<UART2_data_length;i++) client.publish(topic, (char)UART2_data[i]);
                 //for(byte i=0,j=1; i<UART2_data_length;i++,j++) buff2[i] = UART2_data[j];
                 for(byte i=0,j=1; i<UART2_data_length && buff2[i] != '\n' ;i++,j++) buff2[i] = UART2_data[j];
-                String mystring1;
-                
-
                 if(UART2_data[0] == 'R')
-                {                   
-                          
+                {
                   for(byte i=0,j=0; i<UART2_data_length-1;i++,j++)
                   {
                       if(buff3[i] != buff2[j])
                       {
-                          mystring1 = String(buff2,6);
-                          Serial.println(mystring1);
-                          
-                          StaticJsonBuffer<300> JSONbuffer;
-                          JsonObject& JSONencoder = JSONbuffer.createObject();
-                          JSONencoder["EcmoId"] = "223E";
-                          //JSONencoder["nvalue"] = 0;
-                          //JSONencoder["svalue"] = LastKnownT+";"+LastKnownH+";"+HumStat;
-                          JSONencoder["RPM"] = mystring1;
-                          //JSONencoder["HUM"] = h;
-                          char JSONmessageBuffer[100];
-                          JSONencoder.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
-                          //myESP.publish(svrtopic,JSONmessageBuffer,false);
-                          Serial.print("JSON: ");
-                          Serial.println(JSONmessageBuffer);
-                          
-                          client.publish(topic, JSONmessageBuffer);
-                          //client.publish(topic, (const char*)buff2);
+                          client.publish(topic, (const char*)buff2);
                           for(byte i=0,j=0; i<UART2_data_length-1;i++,j++) buff3[i] = buff2[j];
                       }
                   }
@@ -245,7 +222,7 @@ static void UART_ISR_ROUTINE(void *pvParameters)
                   
                 }
                 memset(buff2, 0, sizeof(buff2));
-                mystring1 = "";
+             
             }
            
             //Handle frame error event
