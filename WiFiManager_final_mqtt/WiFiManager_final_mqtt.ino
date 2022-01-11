@@ -38,7 +38,7 @@ uint8_t rxbuf[256];
 uint16_t rx_fifo_len;    
 
 //Timer
-unsigned long myTime;
+//unsigned long myTime;
 
 // MQTT Broker
 const char *mqtt_broker = "venti-dev.albot.io";
@@ -53,9 +53,10 @@ WiFiClient espClient; //mqtt
 PubSubClient client(espClient); //mqtt
 
 //test vars
-long count = 0;
-char temp[50];
-String temp_str;
+//long count = 0;
+//char temp[50];
+//String temp_str;
+int flagg = 0;
 
 void setup() 
 {
@@ -162,6 +163,9 @@ static void UART_ISR_ROUTINE(void *pvParameters)
     uart_event_t event;
     size_t buffered_size;
     bool exit_condition = false;
+
+    String mystring1;
+    String mystring2;
    
     //Infinite loop to run main bulk of task
     while (1) {
@@ -191,8 +195,10 @@ static void UART_ISR_ROUTINE(void *pvParameters)
                 //for(byte i=0; i<UART2_data_length;i++) client.publish(topic, (char)UART2_data[i]);
                 //for(byte i=0,j=1; i<UART2_data_length;i++,j++) buff2[i] = UART2_data[j];
                 for(byte i=0,j=1; i<UART2_data_length && buff2[i] != '\n' ;i++,j++) buff2[i] = UART2_data[j];
-                String mystring1;
                 
+                //StaticJsonBuffer<300> JSONbuffer;
+                DynamicJsonBuffer JSONbuffer;
+                JsonObject& JSONencoder = JSONbuffer.createObject();
 
                 if(UART2_data[0] == 'R')
                 {                   
@@ -201,23 +207,12 @@ static void UART_ISR_ROUTINE(void *pvParameters)
                   {
                       if(buff3[i] != buff2[j])
                       {
+                          mystring1 = "";
                           mystring1 = String(buff2,6);
                           Serial.println(mystring1);
+                          flagg = 1;
                           
-                          StaticJsonBuffer<300> JSONbuffer;
-                          JsonObject& JSONencoder = JSONbuffer.createObject();
-                          JSONencoder["EcmoId"] = "223E";
-                          //JSONencoder["nvalue"] = 0;
-                          //JSONencoder["svalue"] = LastKnownT+";"+LastKnownH+";"+HumStat;
-                          JSONencoder["RPM"] = mystring1;
-                          //JSONencoder["HUM"] = h;
-                          char JSONmessageBuffer[100];
-                          JSONencoder.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
-                          //myESP.publish(svrtopic,JSONmessageBuffer,false);
-                          Serial.print("JSON: ");
-                          Serial.println(JSONmessageBuffer);
                           
-                          client.publish(topic, JSONmessageBuffer);
                           //client.publish(topic, (const char*)buff2);
                           for(byte i=0,j=0; i<UART2_data_length-1;i++,j++) buff3[i] = buff2[j];
                       }
@@ -234,7 +229,10 @@ static void UART_ISR_ROUTINE(void *pvParameters)
                   {
                       if(buff4[i] != buff2[j])
                       {
-                          client.publish(topic2, (const char*)buff2);
+                          mystring2= String(buff2,6);
+                          Serial.println(mystring1);
+                          flagg = 1;
+                          //client.publish(topic2, (const char*)buff2);
                           for(byte i=0,j=0; i<UART2_data_length-1;i++,j++) buff4[i] = buff2[j];
                       }
                   }
@@ -244,8 +242,27 @@ static void UART_ISR_ROUTINE(void *pvParameters)
                   //client.publish(topic, (const char*)buff2);
                   
                 }
-                memset(buff2, 0, sizeof(buff2));
-                mystring1 = "";
+                if(flagg == 1)
+                {
+                          JSONencoder["EcmoId"] = "223E";
+                          //JSONencoder["nvalue"] = 0;
+                          //JSONencoder["svalue"] = LastKnownT+";"+LastKnownH+";"+HumStat;
+                          JSONencoder["PumpSpeed"] = mystring1;
+                          JSONencoder["Flow"] = mystring2;
+                          //JSONencoder["HUM"] = h;
+                          char JSONmessageBuffer[100];
+                          JSONencoder.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
+                          //myESP.publish(svrtopic,JSONmessageBuffer,false);
+                          Serial.print("JSON: ");
+                          Serial.println(JSONmessageBuffer);
+                          
+                          client.publish(topic, JSONmessageBuffer);
+                          flagg = 0;
+                          memset(buff2, 0, sizeof(buff2));
+                }
+                
+                //mystring1 = "";
+                
             }
            
             //Handle frame error event
@@ -279,8 +296,8 @@ void loop()
 {
 
   //timer prnt
-  myTime = millis();
-  count++;
+  //myTime = millis();
+  //count++;
   if(digitalRead(15) == HIGH) //CHECK FOR HARDWARE RESET SIGNAL I.E PIN 15 PULLED HIGH BY JUMPER WIRE
   {
     Serial.println("Wiping WiFi credentials from memory...");
